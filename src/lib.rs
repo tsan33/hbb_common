@@ -56,6 +56,7 @@ pub use thiserror;
 pub use toml;
 pub use uuid;
 pub mod fingerprint;
+pub mod compat;
 pub use flexi_logger;
 pub mod websocket;
 pub mod stream;
