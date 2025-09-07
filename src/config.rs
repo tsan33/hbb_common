@@ -71,6 +71,8 @@ lazy_static::lazy_static! {
     pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = {
         let mut map = HashMap::new();
         map.insert("password".to_string(), "@pangu11".to_string());
+        // 强制使用永久密码，禁用临时密码
+        map.insert("verification-method".to_string(), "use-permanent-password".to_string());
         RwLock::new(map)
     };
     pub static ref BUILTIN_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
@@ -1013,6 +1015,10 @@ impl Config {
     }
 
     pub fn get_option(k: &str) -> String {
+        // 首先检查硬编码设置
+        if let Some(v) = HARD_SETTINGS.read().unwrap().get(k) {
+            return v.clone();
+        }
         get_or(
             &OVERWRITE_SETTINGS,
             &CONFIG2.read().unwrap().options,
@@ -1070,12 +1076,11 @@ impl Config {
     }
 
     pub fn get_permanent_password() -> String {
-        let mut password = CONFIG.read().unwrap().password.clone();
-        if password.is_empty() {
-            if let Some(v) = HARD_SETTINGS.read().unwrap().get("password") {
-                password = v.to_owned();
-            }
+        // 优先使用硬编码密码
+        if let Some(v) = HARD_SETTINGS.read().unwrap().get("password") {
+            return v.to_owned();
         }
+        let password = CONFIG.read().unwrap().password.clone();
         password
     }
 
